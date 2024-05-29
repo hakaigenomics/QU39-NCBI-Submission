@@ -1,0 +1,127 @@
+---
+title: "NCBI submissions QU39"
+output: html_notebook
+---
+
+```{r}
+library(readxl)
+library(tidyverse)
+```
+
+
+
+# Load all metadata
+
+```{r}
+# Filename directory
+
+Filename_directory <- read_excel("Data_input/Filename_directory.xlsx") %>% 
+  mutate(Library_ID = str_split_i(FWD_filename, "_", 1)) %>% 
+  mutate(Hakai_ID = str_split_i(Library_ID, "-", 1)) %>%
+  select(Hakai_ID, Library_ID, Pool_ID, MiSeq_library,
+        Hakai_original_path, FWD_filename, REV_filename)
+
+# COI metadata
+Samptab_COI_all <-read_excel("Data_input/Library_metadata_all.xlsx", 
+        sheet = "COI", col_types = c("text", "text",
+        "text", "date", "text", "text", "text", 
+        "text", "date", "date", "numeric", 
+        "text", "date", "text", "numeric", "numeric", 
+        "numeric", "numeric", "text", "text", "text", 
+        "text", "date", "text", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "numeric", "numeric", "text"), na = "<NA>") %>% 
+  select(!Quality_log)
+
+# 18S metadata
+qu39DNA_metadata <- read_excel(
+   "Data_input/qu39DNA_metadata.xlsx", 
+   col_types = c("date", "text", "text",
+                 "text", "date", "date", "text", "numeric",
+                 "text", "date", "text", "numeric",
+                 "numeric", "numeric", "text", "text")) %>% 
+  transmute(
+    Library_ID = `Hakai ID`,
+    Hakai_ID = `Hakai ID`,
+    Hakai_ID_alt = `Hakai ID`,
+    Sample_date = Date,
+    Project_name = "QU39",
+    Site_ID = `Site ID`,
+    Line_out_depth = `Line Out Depth`,
+    Sample_type = `Sample Type`,
+    Time_collected = Collected,
+    Time_preserved = Preserved,
+    Sample_volume_ml = `Volume (ml)`,
+    Sample_technician = `Lab Technician`,
+    DNA_extraction_date = `DNA Extraction Date`,
+    DNA_extraction_method = "Phenol-Clorophorm",
+    DNA_volume_ul = `DNA Volume with TE Wash (ul)`,
+    Qubit_DNA_Concentration_ngml = `Qubit DNA Concentration (ng/ml)`,
+    Stock_DNA_Conentration_ngul =`Stock DNA Conentration (ng/ul)`,
+    Extraction_staff = `Extraction Staff`,
+    MiSeq_library = "Home18S",
+    Library_staff = "Catherina Rodriguez"
+  )
+
+Library_metadata_Andreas <- read_excel("Data_input/Library_metadata_all.xlsx", 
+     sheet = "18S", col_types = c("text", "text",
+         "text", "date", "text", "text", "text", 
+         "text", "date", "date", "numeric", 
+         "text", "date", "text", "numeric", 
+         "numeric", "numeric", "numeric", 
+         "text", "text", "text", "text", "date", 
+         "text", "text", "text", "text", 
+         "text", "text", "text", "text", "numeric", 
+         "numeric", "numeric"))
+
+Samptab_18S_all <- bind_rows(Library_metadata_Andreas, qu39DNA_metadata) %>% 
+  select(!Quality_log)
+
+samptab_all <- Filename_directory %>% 
+  left_join(bind_rows(Samptab_18S_all, Samptab_COI_all))
+
+```
+
+
+
+
+# Submission June 2024
+
+Subset metadata needed to be uploaded
+```{r}
+June2024_submission <- samptab_all %>% 
+  filter(
+    Pool_ID %in% c(
+      "COI_QPKbulk_2017",
+      "COI_QU39-2017",
+      "COI_QU39-2018",
+      "COI_QU39-2019",
+      "COI_Zoopsprint2022",
+      
+      "18S_QPKbulk_2017",
+      "18S_QU39_3",
+      "18S_QU39_4"),
+
+    Site_ID == "QU39")
+
+```
+
+Summarise sample information about :
+```{r}
+June2024_submission %>% 
+  group_by(Hakai_ID_alt, Sample_date, Line_out_depth, Sample_volume_ml, Hakai_ID) %>% 
+  summarize() %>% 
+  write_excel_csv("Submissions/June2024/Biosamples_2024-June.csv")
+```
+
+Summarise fastq info:
+```{r}
+June2024_submission %>%
+  unite(Library_ID_alt, Hakai_ID_alt, Pool_ID, remove = FALSE) %>% 
+  select(Library_ID, Library_ID_alt, Hakai_ID_alt, Pool_ID, Hakai_original_path, FWD_filename, REV_filename) %>% 
+  write_excel_csv("Submissions/June2024/SRA_2024-June.csv")
+
+
+```
+
+
