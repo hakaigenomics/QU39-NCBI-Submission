@@ -120,8 +120,24 @@ June2024_submission %>%
   unite(Library_ID_alt, Hakai_ID_alt, Pool_ID, remove = FALSE) %>% 
   select(Library_ID, Library_ID_alt, Hakai_ID_alt, Pool_ID, Hakai_original_path, FWD_filename, REV_filename) %>% 
   write_excel_csv("Submissions/June2024/SRA_2024-June.csv")
-
-
 ```
+
+Copy FASTQ files (to be done on the HAKAI cluster)
+```{r}
+setwd("/mnt/Genomics/Working/andreas.novotny/QU39-NCBI-Submission")
+
+copyFASTQ <- function(dir ="Submissions/June2024/SRA_2024-June.csv") {
+  read_csv(dir) %>% 
+  unite(filepath, Hakai_original_path, FWD_filename, sep = "/") %>% 
+  pull(filepath) %>% 
+  file.copy(to="./FASTQ/") 
+  
+  read_csv(dir) %>% 
+  unite(filepath, Hakai_original_path, REV_filename, sep = "/") %>% 
+  pull(filepath) %>% 
+  file.copy(to="./FASTQ/") 
+}
+```
+
 
 
