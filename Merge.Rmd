@@ -89,37 +89,43 @@ samptab_all <- Filename_directory %>%
 
 Subset metadata needed to be uploaded
 ```{r}
-June2024_submission <- samptab_all %>% 
+June2024_submission_COI <- samptab_all %>% 
   filter(
     Pool_ID %in% c(
       "COI_QPKbulk_2017",
       "COI_QU39-2017",
       "COI_QU39-2018",
       "COI_QU39-2019",
-      "COI_Zoopsprint2022",
+      "COI_Zoopsprint2022"
       
-      "18S_QPKbulk_2017",
-      "18S_QU39_3",
-      "18S_QU39_4"),
+      #"18S_QPKbulk_2017",
+      #"18S_QU39_3",
+      #"18S_QU39_4"
+      ),
 
     Site_ID == "QU39")
+
+samptab_all
 
 ```
 
 Summarise sample information about :
 ```{r}
-June2024_submission %>% 
+June2024_submission_COI %>% 
   group_by(Hakai_ID_alt, Sample_date, Line_out_depth, Sample_volume_ml, Hakai_ID) %>% 
   summarize() %>% 
-  write_excel_csv("Submissions/June2024/Biosamples_2024-June.csv")
+  write_excel_csv("Submissions/June2024/Biosamples_2024-June_COI.csv")
 ```
 
 Summarise fastq info:
 ```{r}
-June2024_submission %>%
+June2024_submission_COI %>%
   unite(Library_ID_alt, Hakai_ID_alt, Pool_ID, remove = FALSE) %>% 
   select(Library_ID, Library_ID_alt, Hakai_ID_alt, Pool_ID, Hakai_original_path, FWD_filename, REV_filename) %>% 
-  write_excel_csv("Submissions/June2024/SRA_2024-June.csv")
+  write_excel_csv("Submissions/June2024/SRA_2024-June_COI.csv")
+
+
+samptab_all
 ```
 
 Copy FASTQ files (to be done on the HAKAI cluster)
